@@ -34,11 +34,12 @@ class SearchScreen(App):
     def compose(self) -> ComposeResult:
         self.header=Header()
         self.footer=Footer()
+        self.searchbox= Input(placeholder="Type to search...")
+        self.searchlistview= ListView()
         yield self.header
         yield self.footer
         yield Vertical(
-            Input(placeholder="Type to search..."),
-            ListView()
+            self.searchbox, self.searchlistview
         )
     
     async def on_mount(self) -> None:
@@ -64,11 +65,11 @@ class SearchScreen(App):
     
     async def update_list(self, filter_text: str):
         """Filters list based on input text."""
-        list_view = self.query_one(ListView)
-        list_view.clear()
+        self.searchlistview = self.query_one(ListView)
+        self.searchlistview.clear()
         filtered_data = [datatiem for datatiem in self.source_data if filter_text.lower() in datatiem.lower()]
         for city in filtered_data:
-            list_view.append(ListItem(Label(city)))
+            self.searchlistview.append(ListItem(Label(city)))
     
     async def on_input_changed(self, event: Input.Changed):
         """Filters the list as the user types."""
@@ -87,16 +88,14 @@ class SearchScreen(App):
 
     async def on_key(self, event: events.Key):
         """Handles down and up key events for swhtching focus between input and listview."""
-        if self.query_one(Input).has_focus:
+        if self.searchbox.has_focus:
             if event.key == "down":
-                listview=self.query_one(ListView)
-                if len(listview.children)>0:
-                    listview.focus()
-                    listview.index=0
+                if len(self.searchlistview.children)>0:
+                    self.searchlistview.focus()
+                    self.searchlistview.index=0
         if self.query_one(ListView).has_focus:
-            if (event.key == "up"  and self.query_one(ListView).index==0):
-                self.query_one(Input).focus()
-                
+            if (event.key == "up"  and self.searchlistview.index==0):
+                self.searchbox.focus()
 
 
 if __name__ == "__main__":
